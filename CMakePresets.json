@@ -1,0 +1,15 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "default",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_CXX_COMPILER": "clang++",
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP": "8578c1b2-a62a-4a2d-890a-0d3c5619e7d8"
+			}
+		}
+	]
+}
