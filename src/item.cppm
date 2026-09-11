@@ -1,14 +1,22 @@
 export module dungeon.item;
 import std;
 
-export using std::string, std::uint8_t;
+export using std::string, std::uint8_t, std::string_view;
 
 /**
  * Abstract Item type. Can be found inside Rooms or
  * can be held by the inventory of a character.
  */
-// using Item = std::variant<Weapon, Consumable, QuestItem>;
 export enum ItemType { Weapon, Consumable, QuestItem };
+
+export auto name(const ItemType type) noexcept -> string_view {
+  switch (type) {
+    case ItemType::Weapon: return "Weapon";
+    case ItemType::Consumable: return "Consumable";
+    case ItemType::QuestItem: return "QuestItem";
+  }
+  std::unreachable();
+}
 
 export struct Item {
   ItemType type{ItemType::Consumable};

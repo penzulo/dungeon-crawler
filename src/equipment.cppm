@@ -1,9 +1,11 @@
 export module dungeon.equipment;
 import std;
 
+using std::optional, std::uint8_t;
+
 // Items which are currently being used.
 export struct Equipment {
-  std::optional<std::size_t> equipped_weapon;
+  optional<uint8_t> equipped_weapon;
 
   Equipment() = default;
 };

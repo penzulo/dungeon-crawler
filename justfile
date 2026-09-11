@@ -1,7 +1,5 @@
 # Dungeon Crawler — dev command runner
 
-set shell := ["bash", "-uc"]
-
 build_dir := "build"
 target := "dungeon-crawler"
 
@@ -13,8 +11,8 @@ configure:
     cmake --preset default
 
 # Build all targets. (configure silently if needed)
-build:
-    cmake --build {{build_dir}}
+build: configure
+    cmake --build {{build_dir}} --parallel
 
 alias b := build
 

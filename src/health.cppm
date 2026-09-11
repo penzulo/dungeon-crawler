@@ -29,12 +29,12 @@ export struct Health {
    * Reduces the health by the calculated amount.
    * Returns the amount of damage took.
    */
-  expected<uint8_t, HealthError> take_damage(const uint8_t damage) noexcept {
+  auto take_damage(const uint8_t damage) noexcept -> expected<uint8_t, HealthError> {
     if (current == 0) {
       return unexpected(HealthError::AlreadyDead);
     }
 
-    const uint8_t damage_took = (damage >= current) ? current : damage;
+    const uint8_t damage_took = std::min(damage, current);
     current -= damage_took;
     return damage_took;
   }
@@ -44,13 +44,17 @@ export struct Health {
    * Increases the health by the calculated amount.
    * Returns the amount of healing taken.
    */
-  expected<uint8_t, HealthError> take_heal(const uint8_t increase) noexcept {
+  auto take_heal(const uint8_t increase) noexcept -> expected<uint8_t, HealthError> {
     if (current == maximum) {
       return unexpected(HealthError::AlreadyFullyHealed);
     }
-    const uint8_t can_heal = maximum - current;
-    const uint8_t heal_taken = (increase <= can_heal) ? increase : can_heal;
+
+    const uint8_t heal_taken = std::min(increase, uint8_t(maximum - current));
     current += heal_taken;
     return heal_taken;
   }
+
+  auto is_dead() const noexcept -> bool { return current == 0; }
+  auto is_not_dead() const noexcept -> bool { return !is_dead(); }
+  auto is_full() const noexcept -> bool { return current == maximum; }
 };
