@@ -55,6 +55,7 @@ target_sources(dungeon-core
       src/monster.cppm
       src/room.cppm
       src/dungeon.cppm
+      src/game.cppm
       )
 
 add_executable(dungeon-crawler src/main.cpp)

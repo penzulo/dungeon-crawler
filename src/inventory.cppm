@@ -6,7 +6,7 @@ export using std::uint8_t, std::expected, std::unexpected, std::array, std::opti
 
 export constexpr uint8_t inventory_capacity{20};
 
-export enum InventoryError {
+export enum class InventoryError : uint8_t {
   InvalidSlot,   // Index is out of bounds
   EmptySlot,     // Slot is empty
   SlotOccupied,  // Slot is occupied by another entry
@@ -71,8 +71,8 @@ struct std::formatter<Inventory, char> {
       -> std::format_context::iterator {
     for (size_t i{}; i < inv.items.size(); i++) {
       if (inv.items[i]) {
-        ctx.advance_to(std::format_to(ctx.out(), "[{}] {} ({} - {})\n", i, inv.items[i]->name, "",
-                                      inv.items[i]->value));
+        ctx.advance_to(std::format_to(ctx.out(), "[{}] {} ({} - {})\n", i, inv.items[i]->name,
+                                      inv.items[i]->type, inv.items[i]->value));
       }
     }
     return ctx.out();

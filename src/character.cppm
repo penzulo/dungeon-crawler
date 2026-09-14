@@ -17,7 +17,7 @@ export constexpr uint8_t base_attack{2};
  * Categorizes the different errors one might encounter
  * while using items in an inventory.
  */
-export enum UseItemError {
+export enum class UseItemError : uint8_t {
   UsageError,           // If player tries wrong access to inventory
   AlreadyAtFullHealth,  // If player tried to drink potion at full health
   CannotUseDirectly,    // If player tries to use quest item directly

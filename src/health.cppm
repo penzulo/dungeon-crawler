@@ -3,7 +3,7 @@ import std;
 
 export using std::uint8_t, std::expected, std::unexpected;
 
-export enum HealthError : std::uint8_t {
+export enum class HealthError : uint8_t {
   AlreadyDead,         // Can't damage more
   AlreadyFullyHealed,  // Can't heal more
 };
