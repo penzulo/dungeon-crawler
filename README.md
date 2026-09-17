@@ -56,8 +56,8 @@ The dungeon is a straight line of five rooms heading east:
   the dungeon deals (≈160–220 HP) overwhelms the healing available (≈140 HP).
   The *code* for victory exists — it's just numbers that need tuning. Death,
   on the other hand, definitely works.
-- There are **no unit tests yet** — the components are deliberately small and
-  isolated enough that this is an obvious next slice.
+- There are **no unit tests yet** — Slice 4 (boost-ext/ut) is the next
+  planned slice.
 
 ## What's left (the fun part)
 
@@ -68,8 +68,9 @@ ground is fine; it's a learning sandbox, and the list below is the queue:
       inventory, and quest progress so you can put the game down.
 - [ ] **Loading the game state from disk** — and continuing where you left
       off.
-- [ ] **Decoupling the game-running loop from `main`** — make `main()` dumb:
-      it should just wire up a runner and hand it the dungeon.
+- [x] **Decoupling the game-running loop from `main`** — done (Slice 3,
+      commit `c2571c6`). `main` reads input and prints; `Game::next_state`
+      owns the turn logic.
 - [ ] **Logging to a file** — an audit trail of every turn (and a great
       excuse to learn about sinks, timestamps, and ring buffers).
 - [ ] **Arrow-key controls** — ↑ for North, ← for West, ↓ for South, → for
@@ -84,23 +85,26 @@ ground is fine; it's a learning sandbox, and the list below is the queue:
 - [ ] **Correct combat balance** — move the sword in front of the Wolf (or
       weaken the Wolf/Troll, or add healing), then verify the full win path:
       Goblin → Wolf → Skeleton → Troll → pendant → victory.
-- [ ] **Unit tests** — Health clamps, inventory errors, and the
-      `combat_round` release path are all ready to be tested.
+- [ ] **Unit tests** — next up (boost-ext/ut, module-native). `next_state`
+      is a clean seam: `Game` + `UserIntent` → `expected<TurnResult,
+      GameError>`. Must include a regression test for the `Game::state` sync
+      bug (§3.11 in TODO.md).
 
 ## Module layout
 
 | Module | Exports |
 |---|---|
 | `dungeon.health` | `Health`, `HealthError` |
-| `dungeon.item` | `Item`, `ItemType`, `name`, `inventory_capacity` |
-| `dungeon.inventory` | `Inventory`, `InventoryError`, `ItemRef` |
+| `dungeon.item` | `Item`, `ItemType`, `name` |
+| `dungeon.inventory` | `Inventory`, `InventoryError`, `ItemRef`, `inventory_capacity` |
 | `dungeon.equipment` | `Equipment` |
 | `dungeon.command` | `CommandType`, `to_direction`, `parse_command`, `parse_slot` |
 | `dungeon.character` | `Character`, `UseItemError`, `attack`, `pick_item`, `use_item`, `attack_power` |
 | `dungeon.monster` | `Monster`, `MonsterType`, `MonsterStats`, `stats`, `name` |
 | `dungeon.room` | `Room`, `Direction`, `exit_at`, `release_item`, `release_monster`, `has_item`, `has_monster` |
 | `dungeon.dungeon` | `Dungeon`, `combat_round`, `make_dungeon`, `name` |
-| `main.cpp` | the game loop (for now... see the roadmap!) |
+| `dungeon.game` | `GameState`, `GameError`, `TurnResult`, `UserIntent`, `Game`, `describe`, `error_message` |
+| `main.cpp` | thin driver — reads input, prints output (game logic lives in `dungeon.game`) |
 
 One pacing rule keeps the module graph acyclic: `dungeon.character` never
 imports `dungeon.room` or `dungeon.dungeon`. Combat coordination — which has
@@ -126,7 +130,10 @@ already tripped over:
   own.
 - Name types explicitly: `std::size_t`, `std::optional`, `std::expected` —
   nothing sneaks in from a parent header.
-- `std::println` stays in `main.cpp`; module units just hand data back.
+- ~~`std::println` stays in `main.cpp`; module units just hand data back.~~
+  This rule was relaxed in Slice 3: `dungeon.game` now owns `describe` and
+  `error_message`, which print directly. The goal is a single import
+  (`import dungeon.game;`) for consumers.
 
 ## Building and running
 
@@ -164,7 +171,8 @@ The `justfile` is the command runner:
 | `just index` | symlink `compile_commands.json` for `clangd` |
 | `just format` | clang-format all sources in place |
 | `just check` | verify formatting without touching files (`:v`-flag) |
-| `just clean` | wipe build artifacts |
+| `just test` / `just t` | build and run the test suite via `ctest` |
+| `just clean` | wipe build artifacts (asks for confirmation) |
 
 ## Quality gates
 

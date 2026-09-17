@@ -8,8 +8,18 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(FetchContent)
 
-add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror)
+FetchContent_Declare(
+  ut
+  GIT_REPOSITORY https://github.com/boost-ext/ut.git
+  GIT_TAG        v2.3.1
+  GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(ut)
+
+add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror -g)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-stdlib=libc++)
@@ -41,6 +51,18 @@ add_custom_command(
 add_custom_target(std-module DEPENDS "${STD_PCM}")
 add_compile_options("-fmodule-file=std=${STD_PCM}")
 
+# Compile boost.ut's module interface unit (`import boost.ut;`) into a BMI.
+# NOTE: defined after the `add_compile_options` above — targets created before
+# them don't get the directory-level flags in their module scan context.
+add_library(ut-module)
+target_sources(ut-module
+  PUBLIC
+    FILE_SET CXX_MODULES
+    FILES "${ut_SOURCE_DIR}/include/boost/ut.cppm")
+target_link_libraries(ut-module PRIVATE ut)
+target_compile_options(ut-module PRIVATE -Wno-error)
+add_dependencies(ut-module std-module)
+
 add_library(dungeon-core)
 target_sources(dungeon-core
   PUBLIC
@@ -56,10 +78,15 @@ target_sources(dungeon-core
       src/room.cppm
       src/dungeon.cppm
       src/game.cppm
-      )
+    )
 
 add_executable(dungeon-crawler src/main.cpp)
 target_link_libraries(dungeon-crawler PRIVATE dungeon-core)
 
 add_dependencies(dungeon-core std-module)
 add_dependencies(dungeon-crawler std-module)
+
+add_executable(dungeon-tests tests/test_game_state.cpp)
+target_link_libraries(dungeon-tests PRIVATE dungeon-core ut-module)
+add_dependencies(dungeon-tests std-module)
+add_test(NAME dungeon-tests COMMAND dungeon-tests)

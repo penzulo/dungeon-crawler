@@ -40,5 +40,5 @@ export struct Monster {
       : type(n_type), health{stats(n_type).max_health, stats(n_type).max_health} {}
 
   auto is_dead() const noexcept -> bool { return health.is_dead(); }
-  auto is_not_dead() const noexcept -> bool { return health.is_not_dead(); }
+  auto is_alive() const noexcept -> bool { return health.is_not_dead(); }
 };

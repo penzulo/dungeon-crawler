@@ -1,6 +1,3 @@
-module;
-#include <expected>
-#include <utility>
 export module dungeon.game;
 import std;
 export import dungeon.dungeon;
@@ -89,7 +86,7 @@ export struct Game {
           if (!room.has_item()) {
             return std::unexpected(GameError::NoItemOnFloor);
           }
-          if (room.has_monster() && room.monster->is_not_dead()) {
+          if (room.has_monster() && room.monster->is_alive()) {
             return std::unexpected(GameError::GuardedByMonster);
           }
           if (hero.inventory.get_item(*intent.slot)) {

@@ -10,11 +10,11 @@ export using std::uint8_t, std::expected, std::unexpected, std::string_view;
 
 export constexpr uint8_t n_rooms{5};
 
-export enum class MovementError: uint8_t {
+export enum class MovementError : uint8_t {
   NotAnExit,  // Thrown when there is no exit in the direction
 };
 
-export enum class CombatError: uint8_t {
+export enum class CombatError : uint8_t {
   NothingToFight  // Cannot fight a dead or non-existing monster
 };
 

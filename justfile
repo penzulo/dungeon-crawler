@@ -1,48 +1,95 @@
-# Dungeon Crawler — dev command runner
+# Dungeon Crawler — development command runner.
+#
+# Run `just` with no arguments to list every recipe.
 
+# Fail fast, and treat unset variables / broken pipes as errors.
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Directory the preset builds into, and the primary executable name.
 build_dir := "build"
 target := "dungeon-crawler"
 
+# Every C++ source covered by the formatting gate.
+sources := "src/*.cppm src/main.cpp tests/*.cpp"
+
+# ---------------------------------------------------------------------------
+# meta
+# ---------------------------------------------------------------------------
+
+# List all available recipes.
+[private]
 default:
     @just --list
 
-# Configure the build (Ninja + clang++ + libc++ via CMakePresets.json).
+# ---------------------------------------------------------------------------
+# build
+# ---------------------------------------------------------------------------
+
+# Configure the CMake build (Ninja + clang++ + libc++ via CMakePresets.json).
+[group('build')]
 configure:
     cmake --preset default
 
-# Build all targets. (configure silently if needed)
+# Build every target, configuring first if needed.
+[group('build')]
 build: configure
     cmake --build {{build_dir}} --parallel
 
 alias b := build
 
-# Run the game executable.
+# Delete the build directory and the clangd symlink.
+[group('build')]
+[confirm('Remove the build directory and compile_commands.json?')]
+clean:
+    cmake -E remove_directory {{build_dir}}
+    rm -f compile_commands.json
+
+# ---------------------------------------------------------------------------
+# run
+# ---------------------------------------------------------------------------
+
+# Run the game.
+[group('run')]
 run:
     ./{{build_dir}}/{{target}}
 
 alias r := run
 
-# Configure + build + run in one go.
+# Build, then run the game.
+[group('run')]
 dev: build
     ./{{build_dir}}/{{target}}
 
-# Symlink compile_commands.json to the project root for clangd.
+# ---------------------------------------------------------------------------
+# quality
+# ---------------------------------------------------------------------------
+
+# Format all C++ sources in place.
+[group('quality')]
+format:
+    clang-format -i {{sources}}
+
+alias f := format
+
+# Verify formatting without touching files.
+[group('quality')]
+check:
+    clang-format --dry-run --Werror {{sources}}
+
+# Build and run the test suite.
+[group('quality')]
+test: build
+    ctest --test-dir {{build_dir}} --output-on-failure
+
+alias t := test
+
+# ---------------------------------------------------------------------------
+# tooling
+# ---------------------------------------------------------------------------
+
+# Symlink compile_commands.json into the project root for clangd.
+[group('tooling')]
 index: build
     ln -sfn {{build_dir}}/compile_commands.json compile_commands.json
 
-# Format all sources with clang-format.
-format:
-    clang-format -i src/*.cppm src/main.cpp
-
-# Check formatting without modifying files.
-check:
-    clang-format --dry-run --Werror src/*.cppm src/main.cpp
-
-# Build and run the test suite.
-test:
-    ctest --test-dir {{build_dir}} --output-on-failure
-
-# Remove build artifacts.
-clean:
-    cmake -E remove_directory {{build_dir}}
-    rm -f compile_commands.json
+alias i := index
